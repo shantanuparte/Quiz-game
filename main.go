@@ -1,13 +1,9 @@
-
 package main
 
 import (
 	// "encoding/json"
 	"flag"
-	"fmt"
 	// "net/http"
-	"net/url"
-	"os"
 	// "time"
 )
 
@@ -19,45 +15,9 @@ func main() {
 
 	flag.Parse()
 
-	if *amt < 1 || *amt > 50 {
-		fmt.Println("Amount must be between 1 and 50")
-		os.Exit(1)
-	}
+	var cli *OpClient
 
-	if *cat != 0 && (*cat < 9 || *cat > 32) {
-		fmt.Println("Category must be between 9 and 32")
-		os.Exit(1)
-	}
-
-	if *diff != "" && *diff != "easy" && *diff != "medium" && *diff != "hard" {
-		fmt.Println("Invalid difficulty")
-		os.Exit(1)
-	}
-
-	if *typ != "" && *typ != "multiple" && *typ != "boolean" {
-		fmt.Println("Invalid question type")
-		os.Exit(1)
-	}
-
-	params := url.Values{}
-	params.Set("amount", fmt.Sprintf("%d", *amt))
-
-	if *cat != 0 {
-		params.Set("category", fmt.Sprintf("%d", *cat))
-	}
-
-	if *diff != "" {
-		params.Set("difficulty", *diff)
-	}
-
-	if *typ != "" {
-		params.Set("type", *typ)
-	}
-
-
-	var cli *OpClient;
-
-	cli = NewClient(checkFlags(*amt,*cat,*diff,*typ))
+	cli = NewClient(checkFlags(*amt, *cat, *diff, *typ))
 
 	// client := &http.Client{
 	// 	Timeout: 10 * time.Second,

@@ -1,11 +1,14 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"html"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
-	"net/url"
 )
 
 type Question struct {
@@ -27,6 +30,10 @@ type OpClient struct {
 	HttpClient *http.Client
 }
 
+type QuestionSource interface {
+	GetQuestion(ctx context.Context) ([]Question, error)
+}
+
 func NewClient(brul string) *OpClient {
 	return &OpClient{
 		BaseUrl: brul,
@@ -35,9 +42,6 @@ func NewClient(brul string) *OpClient {
 		},
 	}
 }
-
-
-
 
 func checkFlags(amount, cato int, diff, typ string) string {
 	if amount < 1 || amount > 50 {
@@ -50,7 +54,7 @@ func checkFlags(amount, cato int, diff, typ string) string {
 		os.Exit(1)
 	}
 
-	if diff != "" && diff != "easy" && diff != "medium" && *diff != "hard" {
+	if diff != "" && diff != "easy" && diff != "medium" && diff != "hard" {
 		fmt.Println("Invalid difficulty")
 		os.Exit(1)
 	}
@@ -61,23 +65,73 @@ func checkFlags(amount, cato int, diff, typ string) string {
 	}
 
 	params := url.Values{}
-	params.Set("amount",fmt.Sprintf("%d",amount))
-	
+	params.Set("amount", fmt.Sprintf("%d", amount))
+
 	if cato != 0 {
-		params.Set("category", fmt.Sprintf("%d",cato))
+		params.Set("category", fmt.Sprintf("%d", cato))
 	}
 
 	if diff != "" {
-		params.Set("difficulty",diff)
+		params.Set("difficulty", diff)
 	}
 
 	if typ != "" {
-		params.Set("type",typ)
+		params.Set("type", typ)
 	}
 
 	baseUrl := "https://opentdb.com/api.php"
-	apiUrl := fmt.Sprintf("%s?%s",baseUrl,params.Encode())
+	apiUrl := fmt.Sprintf("%s?%s", baseUrl, params.Encode())
 
-	return  apiUrl
+	return apiUrl
 
 }
+
+func (c *OpClient) GetQuestion(ctx context.Context, baseUrl string) ([]Question, error) {
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, baseUrl, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Sending request: %w", err)
+	}
+
+	defer req.Body.Close()
+
+	resp, err := c.HttpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("Sending request: %w", err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("api returned http status: %s", resp.Status)
+	}
+
+	var data Response
+
+	if err = json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		return nil, fmt.Errorf("Decoding response: %w", err)
+	}
+
+	if data.ResponseCode != 0 {
+		return nil, fmt.Errorf("Open TDB returned respose Code %d", data.ResponseCode)
+	}
+
+	for i := range data.Results {
+		q := &data.Results[i]
+
+		q.Question = html.UnescapeString(q.Question)
+		q.CorrectAnswer = html.UnescapeString(q.CorrectAnswer)
+
+		for j := range q.IncorrectAnswers {
+			q.IncorrectAnswers[j] = html.UnescapeString(q.IncorrectAnswers[j])
+		}
+
+	}
+
+	return data.Results, nil
+	
+}
+
+
+
+
