@@ -90,7 +90,9 @@ func (c *OpClient) GetQuestion(ctx context.Context) ([]Question, error) {
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.BaseUrl, nil)
 
-	defer req.Body.Close()
+	if err != nil {
+		return nil, fmt.Errorf("Creating request: %w", err)
+	}
 
 	resp, err := c.HttpClient.Do(req)
 	if err != nil {
@@ -102,7 +104,7 @@ func (c *OpClient) GetQuestion(ctx context.Context) ([]Question, error) {
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("api returned http status: %s", resp.Status)
 	}
-
+	
 	var data Response
 
 	if err = json.NewDecoder(resp.Body).Decode(&data); err != nil {
