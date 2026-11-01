@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"flag"
 	"fmt"
 	"log"
+	"os"
 	"time"
 )
 
@@ -29,22 +31,47 @@ func main() {
 }
 
 func runQuiz(ctx context.Context, source QuestionSource) error {
+
 	ques, err := source.GetQuestion(ctx)
 	if err != nil {
 		return err
 	}
 
-	
-
-	for i, q := range ques {
-		fmt.Printf("\n%d. %s\n", i+1, q.Question)
-		fmt.Printf("Category: %s | Difficulty: %s\n", q.Category, q.Difficulty)
-
-		fmt.Println("Correct answer: ", q.CorrectAnswer)
-		fmt.Println("Incorrect answer: ", q.IncorrectAnswers)
-
+	game := Game{
+		Questions: ques,
+		Score:     0,
+		Current:   0,
 	}
 
-	return nil
+	reader := bufio.NewReader(os.Stdin)
 
+	total := len(game.Questions)
+
+	fmt.Println("\n========== TRIVIA QUIZ ==========")
+	fmt.Printf("Total Questions: %d\n", total)
+	fmt.Println("================================")
+
+	// Loop through all questions.
+	for i, q := range game.Questions {
+		game.Current = i
+
+		correct := AskQuestion(q, i+1, total, reader)
+
+		if correct {
+			game.Score++
+		}
+	}
+
+	// Display final results.
+	fmt.Println("\n========== QUIZ RESULTS ==========")
+	fmt.Printf("Score: %d/%d\n", game.Score, total)
+
+	if total > 0 {
+		percentage := float64(game.Score) / float64(total) * 100
+		fmt.Printf("Accuracy: %.2f%%\n", percentage)
+	}
+
+	fmt.Println("==================================")
+
+	return nil
 }
