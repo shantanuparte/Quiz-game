@@ -15,17 +15,35 @@ func main() {
 	cat := flag.Int("category", 0, "Category ID (9-32, 0 for all)")
 	diff := flag.String("difficulty", "", "Difficulty: easy, medium, hard")
 	typ := flag.String("type", "", "Question type: multiple, boolean")
+	categories := flag.Bool("categories", false, "Display category IDs (9-32)")
 
 	flag.Parse()
 
-	cli := NewClient(checkFlags(*amt, *cat, *diff, *typ))
+	flag.Usage = func() {
+		fmt.Println("Usage: trivia [options]")
+		fmt.Println("\nOptions:")
+		flag.PrintDefaults()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		fmt.Println("\nExamples:")
+		fmt.Println("  ./trivia -amount 10")
+		fmt.Println("  ./trivia -amount 5 -difficulty easy")
+		fmt.Println("  ./trivia -category 18 -type multiple")
+		fmt.Println("  ./trivia -categories")
+	}
 
-	defer cancel()
+	if *categories {
+		ShowCategoryIDs()
+	} else {
 
-	if err := runQuiz(ctx, cli); err != nil {
-		log.Fatal(err)
+		cli := NewClient(checkFlags(*amt, *cat, *diff, *typ))
+
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+		defer cancel()
+
+		if err := runQuiz(ctx, cli); err != nil {
+			log.Fatal(err)
+		}
 	}
 
 }
@@ -51,7 +69,6 @@ func runQuiz(ctx context.Context, source QuestionSource) error {
 	fmt.Printf("Total Questions: %d\n", total)
 	fmt.Println("================================")
 
-	// Loop through all questions.
 	for i, q := range game.Questions {
 		game.Current = i
 
@@ -62,7 +79,6 @@ func runQuiz(ctx context.Context, source QuestionSource) error {
 		}
 	}
 
-	// Display final results.
 	fmt.Println("\n========== QUIZ RESULTS ==========")
 	fmt.Printf("Score: %d/%d\n", game.Score, total)
 
