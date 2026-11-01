@@ -86,12 +86,9 @@ func checkFlags(amount, cato int, diff, typ string) string {
 
 }
 
-func (c *OpClient) GetQuestion(ctx context.Context, baseUrl string) ([]Question, error) {
+func (c *OpClient) GetQuestion(ctx context.Context) ([]Question, error) {
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, baseUrl, nil)
-	if err != nil {
-		return nil, fmt.Errorf("Sending request: %w", err)
-	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.BaseUrl, nil)
 
 	defer req.Body.Close()
 
@@ -129,9 +126,5 @@ func (c *OpClient) GetQuestion(ctx context.Context, baseUrl string) ([]Question,
 	}
 
 	return data.Results, nil
-	
+
 }
-
-
-
-

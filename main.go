@@ -1,10 +1,11 @@
 package main
 
 import (
-	// "encoding/json"
+	"context"
 	"flag"
-	// "net/http"
-	// "time"
+	"fmt"
+	"log"
+	"time"
 )
 
 func main() {
@@ -15,33 +16,33 @@ func main() {
 
 	flag.Parse()
 
-	var cli *OpClient
+	cli := NewClient(checkFlags(*amt, *cat, *diff, *typ))
 
-	cli = NewClient(checkFlags(*amt, *cat, *diff, *typ))
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 
-	// client := &http.Client{
-	// 	Timeout: 10 * time.Second,
-	// }
-	// resp, err := client.Get(apiURL)
-	// if err != nil {
-	// 	fmt.Println("Request failed:", err)
-	// 	return
-	// }
-	// defer resp.Body.Close()
-	// if resp.StatusCode != http.StatusOK {
-	// 	fmt.Println("HTTP error:", resp.Status)
-	// 	return
-	// }
-	// var data Response
-	// err = json.NewDecoder(resp.Body).Decode(&data)
-	// if err != nil {
-	// 	fmt.Println("JSON decoding failed:", err)
-	// 	return
-	// }
-	// out, err := json.MarshalIndent(data, "", "    ")
-	// if err != nil {
-	// 	fmt.Println("JSON encoding failed:", err)
-	// 	return
-	// }
-	// fmt.Println(string(out))
+	defer cancel()
+
+	if err := runQuiz(ctx, cli); err != nil {
+		log.Fatal(err)
+	}
+
+}
+
+func runQuiz(ctx context.Context, source QuestionSource) error {
+	ques, err := source.GetQuestion(ctx)
+	if err != nil {
+		return err
+	}
+
+	for i, q := range ques {
+		fmt.Printf("\n%d. %s\n", i+1, q.Question)
+		fmt.Printf("Category: %s | Difficulty: %s\n", q.Category, q.Difficulty)
+
+		fmt.Println("Correct answer: ", q.CorrectAnswer)
+		fmt.Println("Incorrect answer: ", q.IncorrectAnswers)
+
+	}
+
+	return nil
+
 }
