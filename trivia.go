@@ -104,7 +104,7 @@ func (c *OpClient) GetQuestion(ctx context.Context) ([]Question, error) {
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("api returned http status: %s", resp.Status)
 	}
-	
+
 	var data Response
 
 	if err = json.NewDecoder(resp.Body).Decode(&data); err != nil {

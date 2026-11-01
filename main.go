@@ -34,6 +34,8 @@ func runQuiz(ctx context.Context, source QuestionSource) error {
 		return err
 	}
 
+	
+
 	for i, q := range ques {
 		fmt.Printf("\n%d. %s\n", i+1, q.Question)
 		fmt.Printf("Category: %s | Difficulty: %s\n", q.Category, q.Difficulty)
