@@ -2,13 +2,13 @@
 package main
 
 import (
-	"encoding/json"
+	// "encoding/json"
 	"flag"
 	"fmt"
-	"net/http"
+	// "net/http"
 	"net/url"
 	"os"
-	"time"
+	// "time"
 )
 
 func main() {
@@ -54,38 +54,34 @@ func main() {
 		params.Set("type", *typ)
 	}
 
-	baseURL := "https://opentdb.com/api.php"
-	apiURL := fmt.Sprintf("%s?%s", baseURL, params.Encode())
 
-	client := &http.Client{
-		Timeout: 10 * time.Second,
-	}
+	var cli *OpClient;
 
-	resp, err := client.Get(apiURL)
-	if err != nil {
-		fmt.Println("Request failed:", err)
-		return
-	}
-	defer resp.Body.Close()
+	cli = NewClient(checkFlags(*amt,*cat,*diff,*typ))
 
-	if resp.StatusCode != http.StatusOK {
-		fmt.Println("HTTP error:", resp.Status)
-		return
-	}
-
-	var data Response
-
-	err = json.NewDecoder(resp.Body).Decode(&data)
-	if err != nil {
-		fmt.Println("JSON decoding failed:", err)
-		return
-	}
-
-	out, err := json.MarshalIndent(data, "", "    ")
-	if err != nil {
-		fmt.Println("JSON encoding failed:", err)
-		return
-	}
-
-	fmt.Println(string(out))
+	// client := &http.Client{
+	// 	Timeout: 10 * time.Second,
+	// }
+	// resp, err := client.Get(apiURL)
+	// if err != nil {
+	// 	fmt.Println("Request failed:", err)
+	// 	return
+	// }
+	// defer resp.Body.Close()
+	// if resp.StatusCode != http.StatusOK {
+	// 	fmt.Println("HTTP error:", resp.Status)
+	// 	return
+	// }
+	// var data Response
+	// err = json.NewDecoder(resp.Body).Decode(&data)
+	// if err != nil {
+	// 	fmt.Println("JSON decoding failed:", err)
+	// 	return
+	// }
+	// out, err := json.MarshalIndent(data, "", "    ")
+	// if err != nil {
+	// 	fmt.Println("JSON encoding failed:", err)
+	// 	return
+	// }
+	// fmt.Println(string(out))
 }
