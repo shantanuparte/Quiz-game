@@ -4,6 +4,10 @@
 
 Jevi is a command-line quiz game that fetches questions from the Open Trivia Database (OpenTDB) API.
 
+
+![iamge](/img/jevi1.png)
+
+
 ## Features
 
 - Fetches questions from OpenTDB API
